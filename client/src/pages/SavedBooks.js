@@ -1,3 +1,4 @@
+import { useMutation } from '@apollo/client';
 import React, { useState, useQuery } from 'react';
 import { Jumbotron, Container, CardColumns, Card, Button } from 'react-bootstrap';
 
@@ -45,7 +46,7 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook(bookId, token);
+      const response = await useMutation(bookId, token);
 
       if (!response.ok) {
         throw new Error('something went wrong!');
