@@ -31,7 +31,7 @@ const LoginForm = () => {
     }
 
     try {
-      const response = await useMutation(LOGIN_USER);
+      const response = await LOGIN_USER(userFormData);
 
       if (!response.ok) {
         throw new Error('something went wrong!');
