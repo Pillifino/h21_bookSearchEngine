@@ -1,5 +1,5 @@
 const { AuthenticationError } = require('apollo-server-express');
-const { User, bookSchema } = require('../models');
+const { User, Book } = require('../models');
 const { signToken } = require('../utils/auth');
 
 const resolvers = {
@@ -10,12 +10,12 @@ const resolvers = {
     user: async (parent, { username }) => {
       return User.findOne({ username }).populate('savedBooks');
     },
-    thoughts: async (parent, { username }) => {
+    savedBooks: async (parent, { username }) => {
       const params = username ? { username } : {};
-      return Thought.find(params).sort({ createdAt: -1 });
+      return Book.find(params).sort({ createdAt: -1 });
     },
-    thought: async (parent, { thoughtId }) => {
-      return Thought.findOne({ _id: thoughtId });
+    savedBook: async (parent, { bookId }) => {
+      return Book.findOne({ _id: bookId });
     },
     me: async (parent, args, context) => {
       if (context.user) {
@@ -48,17 +48,19 @@ const resolvers = {
 
       return { token, user };
     },
-    addBook: async (parent, { authors, title, description }, context) => {
+    saveBook: async (parent, { authors, title, description, image, link }, context) => {
       if (context.user) {
-        const book = await bookSchema.create({
+        const book = await Book.create({
           authors,
           title,
-          description
+          description,
+          image,
+          link,
         });
 
         await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { books: book._id } }
+          { $addToSet: { savedBooks: book._id } }
         );
 
         return book;
@@ -67,13 +69,13 @@ const resolvers = {
     },
     removeBook: async (parent, { bookId }, context) => {
       if (context.user) {
-        const book = await bookSchema.findOneAndDelete({
+        const book = await Book.findOneAndDelete({
           _id: bookId,
         });
 
         await User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { thoughts: thought._id } }
+          { $pull: { savedBooks: book._id } }
         );
 
         return book;
